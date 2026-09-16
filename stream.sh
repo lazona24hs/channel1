@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # URL del flujo HLS (.m3u8) que quieres retransmitir
-M3U8_URL="http://181.209.105.115:2525/play/ciudadmagazine/index.m3u8"
+M3U8_URL="http://200.59.213.66:8000/play/a01o/index.m3u8"
 
 echo "Iniciando retransmisión desde fuente M3U8..."
 
