@@ -1,17 +1,30 @@
 #!/bin/bash
 
-# URL del flujo HLS (.m3u8) que quieres retransmitir
-M3U8_URL="http://181.209.105.115:2525/play/ciudadmagazine"
+# Acepta cualquier tipo de flujo: M3U8, RTSP, RTMP, HTTP, etc.
+STREAM_URL="http://181.209.105.115:2525/play/ciudadmagazine"
 
-echo "Iniciando retransmisión desde fuente M3U8..."
+echo "Iniciando retransmisión desde: $STREAM_URL..."
 
 while true; do
-  # FFmpeg: Lectura directa sin transcodificación (-c copy)
-  ffmpeg -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
-    -re -i "$M3U8_URL" \
-    -c:v copy -c:a copy \
-    -f flv "$1/$2"
+  # Evaluamos si la URL termina en .m3u8 o contiene m3u8 en la ruta
+  if [[ "$STREAM_URL" =~ \.m3u8($|\?) || "$STREAM_URL" =~ "m3u8" ]]; then
+    # Configuración optimizada para HLS (.m3u8)
+    ffmpeg -rw_timeout 15000000 \
+      -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
+      -i "$STREAM_URL" \
+      -c:v copy -c:a copy \
+      -bsf:a aac_adtstoasc \
+      -f flv "$1/$2"
+  else
+    # Configuración universal para otros flujos (RTSP, RTMP, HTTP MP4/TS)
+    ffmpeg -rw_timeout 15000000 \
+      -analyzeduration 10000000 -probesize 10000000 \
+      -i "$STREAM_URL" \
+      -c:v copy -c:a copy \
+      -bsf:a aac_adtstoasc \
+      -f flv "$1/$2"
+  fi
 
-  echo "Conexión perdida con el M3U8. Reintentando en 5 segundos..."
+  echo "Conexión perdida con la fuente. Reintentando en 5 segundos..."
   sleep 5
 done
