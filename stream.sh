@@ -3,9 +3,9 @@
 # Define las URLs de los canales
 declare -A CHANNELS=(
   ["CiudadMagazine"]="http://181.209.105.115:2525/play/ciudadmagazine"
-  ["Canal2"]="http://45.179.152.42:8000/play/a016"
+  ["Canal2"]="http://181.209.105.115:2525/play/elnueve"
   ["Canal3"]="http://181.209.105.115:2525/play/metro"
-  ["Cronica"]="http://45.70.221.206/CRONICA_OTT/playlist.m3u8"
+  ["Cronica"]="http://181.209.105.115:2525/play/evento"
 )
 
 CHANNEL_ID="$1"
