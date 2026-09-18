@@ -1,30 +1,33 @@
 #!/bin/bash
 
-# Acepta cualquier tipo de flujo: M3U8, RTSP, RTMP, HTTP, etc.
-STREAM_URL="http://181.209.105.115:2525/play/ciudadmagazine"
+# Define las URLs de los canales
+declare -A CHANNELS=(
+  ["CiudadMagazine"]="http://181.209.105.115:2525/play/ciudadmagazine"
+  ["Canal2"]="http://45.179.152.42:8000/play/a016"
+  ["Canal3"]="http://181.209.105.115:2525/play/metro"
+  ["Cronica"]="http://45.70.221.206/CRONICA_OTT/playlist.m3u8"
+)
 
-echo "Iniciando retransmisión desde: $STREAM_URL..."
+CHANNEL_ID="$1"
+RTMP_SERVER="$2"
+STREAM_KEY="$3"
 
+STREAM_URL="${CHANNELS[$CHANNEL_ID]}"
+
+if [ -z "$STREAM_URL" ]; then
+  echo "Error: Canal '$CHANNEL_ID' no encontrado."
+  exit 1
+fi
+
+echo "Iniciando $CHANNEL_ID..."
 while true; do
-  # Evaluamos si la URL termina en .m3u8 o contiene m3u8 en la ruta
-  if [[ "$STREAM_URL" =~ \.m3u8($|\?) || "$STREAM_URL" =~ "m3u8" ]]; then
-    # Configuración optimizada para HLS (.m3u8)
-    ffmpeg -rw_timeout 15000000 \
-      -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
-      -i "$STREAM_URL" \
-      -c:v copy -c:a copy \
-      -bsf:a aac_adtstoasc \
-      -f flv "$1/$2"
-  else
-    # Configuración universal para otros flujos (RTSP, RTMP, HTTP MP4/TS)
-    ffmpeg -rw_timeout 15000000 \
-      -analyzeduration 10000000 -probesize 10000000 \
-      -i "$STREAM_URL" \
-      -c:v copy -c:a copy \
-      -bsf:a aac_adtstoasc \
-      -f flv "$1/$2"
-  fi
+  ffmpeg -rw_timeout 15000000 \
+    -reconnect 1 -reconnect_at_eof 1 -reconnect_streamed 1 -reconnect_delay_max 5 \
+    -i "$STREAM_URL" \
+    -c:v copy -c:a copy \
+    -bsf:a aac_adtstoasc \
+    -f flv "$RTMP_SERVER/$STREAM_KEY"
 
-  echo "Conexión perdida con la fuente. Reintentando en 5 segundos..."
+  echo "Conexión perdida en $CHANNEL_ID. Reintentando en 5s..."
   sleep 5
 done
