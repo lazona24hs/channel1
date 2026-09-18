@@ -1,25 +1,45 @@
-name: 24/7 IPTV Streamer
+name: Channels Restream
 
 on:
-  schedule:
-    # Se reinicia automáticamente cada 5 horas para evitar cierres de GitHub
-    - cron: '0 */5 * * *'
-  workflow_dispatch: # Permite iniciar la transmisión manualmente
+  workflow_dispatch: # Permite iniciar las emisiones manualmente
 
 jobs:
-  stream:
+  restream:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # Si un canal falla o se corta, los demás siguen transmitiendo
+      matrix:
+        channel:
+          - name: "Magazine"
+            id: "CiudadMagazine"
+            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL1 }}"
+            stream_key: "${{ secrets.STREAM_KEY_CANAL1 }}"
+
+          - name: "elnueve"
+            id: "Canal2"
+            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL2 }}"
+            stream_key: "${{ secrets.STREAM_KEY_CANAL2 }}"
+
+          - name: "Metro"
+            id: "Canal3"
+            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL3 }}"
+            stream_key: "${{ secrets.STREAM_KEY_CANAL3 }}"
+
+          - name: "Cronica"
+            id: "Cronica"
+            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL4 }}"
+            stream_key: "${{ secrets.STREAM_KEY_CANAL4 }}"
+
     steps:
-      - name: Checkout Código
+      - name: Checkout del código
         uses: actions/checkout@v4
 
-      - name: Instalar FFmpeg y Fuentes
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-freefont-ttf
+      - name: Instalar FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
-      - name: Iniciar Transmisión RTMP
-        env:
-          STREAM_URL: ${{ secrets.STREAM_URL }}
-          STREAM_KEY: ${{ secrets.STREAM_KEY }}
+      - name: Ejecutar Restream (${{ matrix.channel.name }})
         run: |
           chmod +x stream.sh
-          ./stream.sh "$STREAM_URL" "$STREAM_KEY"
+          ./stream.sh "${{ matrix.channel.id }}" "${{ matrix.channel.rtmp_server }}" "${{ matrix.channel.stream_key }}"
