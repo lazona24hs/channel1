@@ -1,34 +1,34 @@
 name: Channels Restream
 
 on:
-  workflow_dispatch: # Permite iniciar las emisiones manualmente
+  workflow_dispatch:
 
 jobs:
   restream:
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false # Si un canal falla o se corta, los demás siguen transmitiendo
+      fail-fast: false
       matrix:
         channel:
           - name: "Magazine"
             id: "CiudadMagazine"
-            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL1 }}"
-            stream_key: "${{ secrets.STREAM_KEY_CANAL1 }}"
+            rtmp_secret_name: "RTMP_SERVER_CANAL1"
+            key_secret_name: "STREAM_KEY_CANAL1"
 
-          - name: "elnueve"
+          - name: "QuieroTV"
             id: "Canal2"
-            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL2 }}"
-            stream_key: "${{ secrets.STREAM_KEY_CANAL2 }}"
+            rtmp_secret_name: "RTMP_SERVER_CANAL2"
+            key_secret_name: "STREAM_KEY_CANAL2"
 
           - name: "Metro"
             id: "Canal3"
-            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL3 }}"
-            stream_key: "${{ secrets.STREAM_KEY_CANAL3 }}"
+            rtmp_secret_name: "RTMP_SERVER_CANAL3"
+            key_secret_name: "STREAM_KEY_CANAL3"
 
           - name: "Cronica"
             id: "Cronica"
-            rtmp_server: "${{ secrets.RTMP_SERVER_CANAL4 }}"
-            stream_key: "${{ secrets.STREAM_KEY_CANAL4 }}"
+            rtmp_secret_name: "RTMP_SERVER_CANAL4"
+            key_secret_name: "STREAM_KEY_CANAL4"
 
     steps:
       - name: Checkout del código
@@ -40,6 +40,10 @@ jobs:
           sudo apt-get install -y ffmpeg
 
       - name: Ejecutar Restream (${{ matrix.channel.name }})
+        env:
+          # Leemos el secret dinámicamente según lo definido en la matriz
+          RTMP_SERVER: ${{ secrets[matrix.channel.rtmp_secret_name] }}
+          STREAM_KEY: ${{ secrets[matrix.channel.key_secret_name] }}
         run: |
           chmod +x stream.sh
-          ./stream.sh "${{ matrix.channel.id }}" "${{ matrix.channel.rtmp_server }}" "${{ matrix.channel.stream_key }}"
+          ./stream.sh "${{ matrix.channel.id }}" "$RTMP_SERVER" "$STREAM_KEY"
